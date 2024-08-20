@@ -1,1 +1,1 @@
-# minspecML
+# minspec
