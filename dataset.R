@@ -1,5 +1,4 @@
-library(data.table)
-library(readxl)
+source("setup.R")
 # MRD274 data
 ASD1<- fread("spectra/dataset/MRD274/ASD.CSV")
 DSP <- fread("spectra/dataset/MRD274/DSP.CSV")
@@ -8,8 +7,8 @@ FOS <- fread("spectra/dataset/MRD274/FOS.CSV")
 ASD2<- fread("spectra/dataset/BalyaNorth/ASD.CSV")
 
 # Lithology
-LITHOLOGY_A <- fread("data/litho_A.csv")
-LITHOLOGY_B <- fread("data/litho_B.csv")
+LITH_A <- fread("data/litho_A.csv")
+LITH_B <- fread("data/litho_B_V2.csv")
 
 
 ivar <- "Wavelength_(nm)"
@@ -40,6 +39,10 @@ DATA[,Sample:=NULL]
 IDX <- DATA[,.(SampleID,SourceID,ProjectID)] |> unique()
 
 
-IDX[,Lithology:=(SampleID %in% LITHOLOGY_A$SampleID) & (SampleID %in% LITHOLOGY_B$SampleID)]
+IDX[,LithoGeochem_A:=(SampleID %in% LITH_A$SampleID) ]
+IDX[,LithoGeochem_A:=(SampleID %in% LITH_B$SampleID)]
+
 fwrite(IDX, "data/IDX.csv")
+
+# Son las mismas litogeoquimicas A y B?
 
