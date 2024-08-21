@@ -1,14 +1,24 @@
 library(data.table)
 library(readxl)
-ASD <- fread("data/MRD274/ASD.CSV")
-DSP <- fread("data/MRD274/DSP.CSV")
-FOS <- fread("data/MRD274/FOS.CSV")
+# MRD274 data
+ASD1<- fread("spectra/dataset/MRD274/ASD.CSV")
+DSP <- fread("spectra/dataset/MRD274/DSP.CSV")
+FOS <- fread("spectra/dataset/MRD274/FOS.CSV")
+# BalyaNorth data
+ASD2<- fread("spectra/dataset/BalyaNorth/ASD.CSV")
+
+# Lithology
+LITHOLOGY_A <- fread("data/litho_A.csv")
+LITHOLOGY_B <- fread("data/litho_B.csv")
 
 
 ivar <- "Wavelength_(nm)"
-mvars <- colnames(ASD)[!colnames(ASD) %in% ivar]
-melt(ASD, id.vars = ivar, measure.vars = mvars, variable.name = "Sample", value.name = "Reflectance") -> ASD
+mvars <- colnames(ASD1)[!colnames(ASD1) %in% ivar]
+melt(ASD1, id.vars = ivar, measure.vars = mvars, variable.name = "Sample", value.name = "Reflectance") -> ASD1
 
+ivar <- "Wavelength_(nm)"
+mvars <- colnames(ASD2)[!colnames(ASD2) %in% ivar]
+melt(ASD2, id.vars = ivar, measure.vars = mvars, variable.name = "Sample", value.name = "Reflectance") -> ASD2
 
 mvars <- colnames(DSP)[!colnames(DSP) %in% ivar]
 melt(DSP, id.vars = ivar, measure.vars = mvars, variable.name = "Sample", value.name = "Reflectance") -> DSP
@@ -17,21 +27,19 @@ mvars <- colnames(FOS)[!colnames(FOS) %in% ivar]
 melt(FOS, id.vars = ivar, measure.vars = mvars, variable.name = "Sample", value.name = "Reflectance") -> FOS
 
 DATA <- rbindlist(list(
-  data.table(ID="asd", ASD),
-  data.table(ID="dsp", DSP),
-  data.table(ID="fos", FOS)
+  data.table(SourceID="asd", ProjectID="mrd",ASD1),
+  data.table(SourceID="asd", ProjectID="bn",ASD2),
+  data.table(SourceID="dsp", ProjectID="mrd",DSP),
+  data.table(SourceID="fos", ProjectID="mrd",FOS)
   
 ))
 
 DATA[,SampleID:=sub(".*:(\\w+).*", "\\1", Sample)]
 DATA[,Sample:=NULL]
 
-SampleID <- unique(DATA$SampleID)
-LTHA <- fread("data/MRD274/data_A.csv")
-LTHB <- fread("data/MRD274/data_B.csv")
+IDX <- DATA[,.(SampleID,SourceID,ProjectID)] |> unique()
 
 
-IDX <- data.table(SampleID=SampleID, ID=1:length(SampleID),LTHA=SampleID %in% LTHA$SampleID,LTHB=SampleID %in% LTHB$SampleID)
-fwrite(IDX, "data/MRD274/IDX.csv")
+IDX[,Lithology:=(SampleID %in% LITHOLOGY_A$SampleID) & (SampleID %in% LITHOLOGY_B$SampleID)]
+fwrite(IDX, "data/IDX.csv")
 
-IDX[LTHA==TRUE & LTHB==TRUE]
