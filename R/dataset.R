@@ -1,4 +1,4 @@
-source("setup.R")
+source("R/setup.R")
 # MRD274 data
 ASD1<- fread("spectra/dataset/MRD274/ASD.CSV")
 DSP <- fread("spectra/dataset/MRD274/DSP.CSV")
